@@ -35,10 +35,16 @@
                 <span class="flag-creator"
                   >Created by: {{ flag.createdBy }}</span
                 >
-                <button mat-button color="primary" (click)="resolveFlag(flag)">
-                  <mat-icon>check_circle</mat-icon>
-                  Resolve
-                </button>
+                @if (canResolveFlags()) {
+                  <button
+                    mat-button
+                    color="primary"
+                    (click)="resolveFlag(flag)"
+                  >
+                    <mat-icon>check_circle</mat-icon>
+                    Resolve
+                  </button>
+                }
               </div>
             </div>
           </mat-list-item>

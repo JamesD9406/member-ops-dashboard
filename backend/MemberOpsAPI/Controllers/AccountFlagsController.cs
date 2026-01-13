@@ -63,6 +63,7 @@ public class AccountFlagsController : ControllerBase
         return CreatedAtAction(nameof(GetMemberFlags), new { memberId }, flag);
     }
 
+    [Authorize(Roles = "Supervisor,Admin")]
     [HttpPut("{flagId}/resolve")]
     public async Task<ActionResult<AccountFlag>> ResolveFlag(
         int memberId,
