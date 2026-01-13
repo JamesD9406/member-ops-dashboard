@@ -9,16 +9,16 @@ public static class DbSeeder
         // Check if data already exists
         if (context.Staff.Any() || context.Members.Any())
         {
-            return; 
+            return;
         }
 
-        // Seed Staff (passwords will be hashed in a real implementation)
+        // Seed Staff with BCrypt hashed passwords
         var staff = new List<Staff>
         {
             new Staff
             {
                 Username = "admin",
-                PasswordHash = "Admin123!", 
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
                 DisplayName = "Admin User",
                 Email = "admin@memberops.local",
                 Role = "Admin"
@@ -26,7 +26,7 @@ public static class DbSeeder
             new Staff
             {
                 Username = "supervisor",
-                PasswordHash = "Super123!", 
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Super123!"),
                 DisplayName = "Sarah Supervisor",
                 Email = "supervisor@memberops.local",
                 Role = "Supervisor"
@@ -34,7 +34,7 @@ public static class DbSeeder
             new Staff
             {
                 Username = "staff",
-                PasswordHash = "Staff123!", 
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
                 DisplayName = "Sam Staff",
                 Email = "staff@memberops.local",
                 Role = "Staff"
@@ -43,7 +43,7 @@ public static class DbSeeder
         context.Staff.AddRange(staff);
         context.SaveChanges();
 
-        // Seed Members
+        // Seed Members (rest of the code remains the same)
         var members = new List<Member>
         {
             new Member
@@ -133,12 +133,12 @@ public static class DbSeeder
         context.Members.AddRange(members);
         context.SaveChanges();
 
-        // Seed Account Flags
+        // Seed Account Flags (unchanged)
         var flags = new List<AccountFlag>
         {
             new AccountFlag
             {
-                MemberId = members[2].Id, // Robert Johnson (Locked account)
+                MemberId = members[2].Id,
                 FlagType = "IDVerification",
                 Description = "Driver's license expired, needs updated ID",
                 CreatedBy = "supervisor",
@@ -146,7 +146,7 @@ public static class DbSeeder
             },
             new AccountFlag
             {
-                MemberId = members[1].Id, // Jane Smith
+                MemberId = members[1].Id,
                 FlagType = "GeneralReview",
                 Description = "Requested credit limit increase review",
                 CreatedBy = "staff",
@@ -154,7 +154,7 @@ public static class DbSeeder
             },
             new AccountFlag
             {
-                MemberId = members[6].Id, // David Martinez
+                MemberId = members[6].Id,
                 FlagType = "PaymentIssue",
                 Description = "Missed payment - contacted member",
                 CreatedBy = "staff",
@@ -167,12 +167,12 @@ public static class DbSeeder
         context.AccountFlags.AddRange(flags);
         context.SaveChanges();
 
-        // Seed Service Requests
+        // Seed Service Requests (unchanged)
         var serviceRequests = new List<ServiceRequest>
         {
             new ServiceRequest
             {
-                MemberId = members[0].Id, // John Doe
+                MemberId = members[0].Id,
                 RequestType = "CardReplacement",
                 Description = "Lost card, needs replacement",
                 Status = "InProgress",
@@ -181,7 +181,7 @@ public static class DbSeeder
             },
             new ServiceRequest
             {
-                MemberId = members[3].Id, // Emily Davis
+                MemberId = members[3].Id,
                 RequestType = "StatementRequest",
                 Description = "Needs last 6 months statements for tax purposes",
                 Status = "Open",
@@ -190,7 +190,7 @@ public static class DbSeeder
             },
             new ServiceRequest
             {
-                MemberId = members[1].Id, // Jane Smith
+                MemberId = members[1].Id,
                 RequestType = "AddressChange",
                 Description = "Moving to new address, update records",
                 Status = "Completed",
@@ -201,7 +201,7 @@ public static class DbSeeder
             },
             new ServiceRequest
             {
-                MemberId = members[4].Id, // Michael Wilson
+                MemberId = members[4].Id,
                 RequestType = "Question",
                 Description = "Question about overdraft protection options",
                 Status = "Open",
@@ -212,7 +212,7 @@ public static class DbSeeder
         context.ServiceRequests.AddRange(serviceRequests);
         context.SaveChanges();
 
-        // Seed Audit Logs
+        // Seed Audit Logs (unchanged)
         var auditLogs = new List<AuditLog>
         {
             new AuditLog
