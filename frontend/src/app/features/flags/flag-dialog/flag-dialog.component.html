@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>Add Account Flag</h2>
+<mat-dialog-content>
+  <p class="member-info">Member: {{ data.memberName }}</p>
+
+  <form [formGroup]="flagForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Flag Type</mat-label>
+      <mat-select formControlName="flagType" required>
+        <mat-option value="FraudReview">Fraud Review</mat-option>
+        <mat-option value="IDVerification">ID Verification</mat-option>
+        <mat-option value="PaymentIssue">Payment Issue</mat-option>
+        <mat-option value="GeneralReview">General Review</mat-option>
+      </mat-select>
+      <mat-error *ngIf="flagForm.get('flagType')?.hasError('required')">
+        Flag type is required
+      </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Description</mat-label>
+      <textarea
+        matInput
+        formControlName="description"
+        rows="4"
+        placeholder="Provide details about this flag..."
+        required
+      ></textarea>
+      <mat-error *ngIf="flagForm.get('description')?.hasError('required')">
+        Description is required
+      </mat-error>
+      <mat-error *ngIf="flagForm.get('description')?.hasError('minlength')">
+        Description must be at least 10 characters
+      </mat-error>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="!flagForm.valid"
+  >
+    Add Flag
+  </button>
+</mat-dialog-actions>
