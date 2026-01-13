@@ -31,9 +31,8 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid username or password" });
         }
 
-        // TODO: In production, use BCrypt.Net to verify hashed passwords
-        // For now, comparing plain text (DEVELOPMENT ONLY!)
-        if (staff.PasswordHash != request.Password)
+        // Verify password using BCrypt
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, staff.PasswordHash))
         {
             return Unauthorized(new { message = "Invalid username or password" });
         }
