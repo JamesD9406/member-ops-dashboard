@@ -1,10 +1,227 @@
 <div class="container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Member Detail</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <p>Member detail view coming soon...</p>
-    </mat-card-content>
-  </mat-card>
+  @if (isLoading) {
+    <div class="loading-spinner">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading member details...</p>
+    </div>
+  }
+
+  @if (errorMessage && !isLoading) {
+    <mat-card class="error-card">
+      <mat-card-content>
+        <div class="error-content">
+          <mat-icon color="warn">error_outline</mat-icon>
+          <h2>{{ errorMessage }}</h2>
+          <button mat-raised-button color="primary" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Member Search
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (member && !isLoading) {
+    <div class="member-detail-container">
+      <!-- Header with Back Button -->
+      <div class="header-actions">
+        <button mat-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Search
+        </button>
+      </div>
+
+      <mat-card class="member-info-card">
+        <mat-card-header>
+          <mat-card-title>
+            {{ member.firstName }} {{ member.lastName }}
+          </mat-card-title>
+          <mat-card-subtitle>
+            Member # {{ member.memberNumber }}
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <mat-icon>email</mat-icon>
+              <div>
+                <label>Email</label>
+                <p>{{ member.email }}</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>phone</mat-icon>
+              <div>
+                <label>Phone</label>
+                <p>{{ member.phone }}</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>calendar_today</mat-icon>
+              <div>
+                <label>Join Date</label>
+                <p>{{ member.joinDate | date: "longDate" }}</p>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <mat-icon>account_circle</mat-icon>
+              <div>
+                <label>Status</label>
+                <mat-chip [color]="getStatusColor(member.status)" highlighted>
+                  {{ member.status }}
+                </mat-chip>
+              </div>
+            </div>
+          </div>
+
+          @if (member.notes) {
+            <mat-divider style="margin: 16px 0"></mat-divider>
+            <div class="notes-section">
+              <label><mat-icon>notes</mat-icon> Notes</label>
+              <p>{{ member.notes }}</p>
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="flags-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>flag</mat-icon>
+            Account Flags
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          @if (getActiveFlags().length > 0) {
+            <h3>Active Flags</h3>
+            <mat-list>
+              @for (flag of getActiveFlags(); track flag.id) {
+                <mat-list-item>
+                  <div class="flag-item">
+                    <div class="flag-header">
+                      <mat-chip
+                        [color]="getFlagColor(flag.flagType)"
+                        highlighted
+                      >
+                        {{ flag.flagType }}
+                      </mat-chip>
+                      <span class="flag-date">{{
+                        flag.createdAt | date: "short"
+                      }}</span>
+                    </div>
+                    <p class="flag-description">{{ flag.description }}</p>
+                    <span class="flag-creator"
+                      >Created by: {{ flag.createdBy }}</span
+                    >
+                  </div>
+                </mat-list-item>
+                <mat-divider></mat-divider>
+              }
+            </mat-list>
+          } @else {
+            <p class="no-data">No active flags</p>
+          }
+
+          @if (getResolvedFlags().length > 0) {
+            <h3 style="margin-top: 24px">Resolved Flags</h3>
+            <mat-list>
+              @for (flag of getResolvedFlags(); track flag.id) {
+                <mat-list-item>
+                  <div class="flag-item resolved">
+                    <div class="flag-header">
+                      <mat-chip>{{ flag.flagType }}</mat-chip>
+                      <span class="flag-date">
+                        Resolved: {{ flag.resolvedAt | date: "short" }}
+                      </span>
+                    </div>
+                    <p class="flag-description">{{ flag.description }}</p>
+                    @if (flag.resolutionNotes) {
+                      <p class="resolution-notes">
+                        <strong>Resolution:</strong> {{ flag.resolutionNotes }}
+                      </p>
+                    }
+                    <span class="flag-creator">
+                      Resolved by: {{ flag.resolvedBy }}
+                    </span>
+                  </div>
+                </mat-list-item>
+                <mat-divider></mat-divider>
+              }
+            </mat-list>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="requests-card">
+        <mat-card-header>
+          <mat-card-title>
+            <mat-icon>support_agent</mat-icon>
+            Service Requests
+          </mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          @if (getOpenRequests().length > 0) {
+            <h3>Active Requests</h3>
+            <mat-list>
+              @for (request of getOpenRequests(); track request.id) {
+                <mat-list-item>
+                  <div class="request-item">
+                    <div class="request-header">
+                      <span class="request-type">{{
+                        request.requestType
+                      }}</span>
+                      <mat-chip
+                        [color]="getRequestStatusColor(request.status)"
+                        highlighted
+                      >
+                        {{ request.status }}
+                      </mat-chip>
+                    </div>
+                    <p class="request-description">{{ request.description }}</p>
+                    <span class="request-meta">
+                      Created: {{ request.createdAt | date: "short" }} by
+                      {{ request.createdBy }}
+                    </span>
+                  </div>
+                </mat-list-item>
+                <mat-divider></mat-divider>
+              }
+            </mat-list>
+          } @else {
+            <p class="no-data">No active service requests</p>
+          }
+
+          @if (getCompletedRequests().length > 0) {
+            <h3 style="margin-top: 24px">Completed Requests</h3>
+            <mat-list>
+              @for (request of getCompletedRequests(); track request.id) {
+                <mat-list-item>
+                  <div class="request-item completed">
+                    <div class="request-header">
+                      <span class="request-type">{{
+                        request.requestType
+                      }}</span>
+                      <mat-chip>Completed</mat-chip>
+                    </div>
+                    <p class="request-description">{{ request.description }}</p>
+                    <span class="request-meta">
+                      Completed: {{ request.completedAt | date: "short" }} by
+                      {{ request.completedBy }}
+                    </span>
+                  </div>
+                </mat-list-item>
+                <mat-divider></mat-divider>
+              }
+            </mat-list>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
 </div>
