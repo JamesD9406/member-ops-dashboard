@@ -26,6 +26,7 @@ import {
   FlagDialogComponent,
   FlagDialogResult,
 } from '../../flags/flag-dialog/flag-dialogue.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-member-detail',
@@ -57,6 +58,7 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
     private flagService: AccountFlagService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
@@ -162,6 +164,10 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
       this.member?.serviceRequests?.filter((r) => r.status === 'Completed') ||
       []
     );
+  }
+
+  canResolveFlags(): boolean {
+    return this.authService.hasRole(['Supervisor', 'Admin']);
   }
 
   openAddFlagDialog(): void {
