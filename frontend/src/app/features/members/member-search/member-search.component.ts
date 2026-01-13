@@ -46,6 +46,7 @@ export class MemberSearchComponent implements OnInit, OnDestroy {
     'email',
     'phone',
     'status',
+    'flags',
     'joinDate',
   ];
 
@@ -115,6 +116,10 @@ export class MemberSearchComponent implements OnInit, OnDestroy {
       default:
         return '';
     }
+  }
+
+  getActiveFlagCount(member: Member): number {
+    return member.flags?.filter((f) => !f.resolvedAt).length || 0;
   }
 
   clearFilters(): void {

@@ -43,6 +43,7 @@ public class MembersController : ControllerBase
         }
 
         var members = await query
+            .Include(m => m.Flags)
             .OrderByDescending(m => m.JoinDate)
             .ToListAsync();
 
