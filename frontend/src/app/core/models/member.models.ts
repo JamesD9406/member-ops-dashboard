@@ -8,6 +8,8 @@ export interface Member {
   status: 'Active' | 'Locked' | 'Closed';
   joinDate: string;
   notes?: string;
+  flags?: AccountFlag[]; // Add this
+  serviceRequests?: ServiceRequest[]; // Add this
 }
 
 export interface AccountFlag {
@@ -25,7 +27,11 @@ export interface AccountFlag {
 export interface ServiceRequest {
   id: number;
   memberId: number;
-  requestType: 'CardReplacement' | 'StatementRequest' | 'AddressChange' | 'Question';
+  requestType:
+    | 'CardReplacement'
+    | 'StatementRequest'
+    | 'AddressChange'
+    | 'Question';
   description: string;
   status: 'Open' | 'InProgress' | 'Completed';
   createdBy: string;
