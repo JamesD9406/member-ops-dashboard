@@ -12,6 +12,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { MemberService } from '../../../core/services/member.service';
 import {
@@ -19,6 +21,11 @@ import {
   AccountFlag,
   ServiceRequest,
 } from '../../../core/models/member.models';
+import { AccountFlagService } from '../../../core/services/account-flag.service';
+import {
+  FlagDialogComponent,
+  FlagDialogResult,
+} from '../../flags/flag-dialog/flag-dialogue.component';
 
 @Component({
   selector: 'app-member-detail',
@@ -47,6 +54,9 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private memberService: MemberService,
+    private flagService: AccountFlagService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -152,5 +162,76 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
       this.member?.serviceRequests?.filter((r) => r.status === 'Completed') ||
       []
     );
+  }
+
+  openAddFlagDialog(): void {
+    if (!this.member) return;
+
+    const dialogRef = this.dialog.open(FlagDialogComponent, {
+      width: '500px',
+      data: {
+        memberId: this.member.id,
+        memberName: `${this.member.firstName} ${this.member.lastName}`,
+      },
+    });
+
+    dialogRef
+      .afterClosed()
+      .subscribe((result: FlagDialogResult | undefined) => {
+        if (result && this.member) {
+          this.createFlag(result);
+        }
+      });
+  }
+
+  createFlag(flagData: FlagDialogResult): void {
+    if (!this.member) return;
+
+    this.flagService
+      .createFlag(this.member.id, flagData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Flag added successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadMember(this.member!.id);
+        },
+        error: (error) => {
+          console.error('Error creating flag:', error);
+          this.snackBar.open('Failed to add flag', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  resolveFlag(flag: AccountFlag): void {
+    if (
+      !this.member ||
+      !confirm('Are you sure you want to resolve this flag?')
+    ) {
+      return;
+    }
+
+    this.flagService
+      .resolveFlag(this.member.id, flag.id, {
+        resolutionNotes: 'Resolved by staff member',
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Flag resolved successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadMember(this.member!.id);
+        },
+        error: (error) => {
+          console.error('Error resolving flag:', error);
+          this.snackBar.open('Failed to resolve flag', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
   }
 }
