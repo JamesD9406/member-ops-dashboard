@@ -61,7 +61,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Seed the database
+// Check for database reset flag
+if (args.Contains("--reset-db"))
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DatabaseManager.ResetDatabase(context);
+    Console.WriteLine("Database reset complete. Exiting...");
+    return;
+}
+
+// Seed the database (normal startup)
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();

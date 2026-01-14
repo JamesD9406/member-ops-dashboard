@@ -43,6 +43,7 @@ export interface ServiceRequest {
 export interface AuditLog {
   id: number;
   memberId: number;
+  member?: Member;
   actor: string;
   action: string;
   details?: string;

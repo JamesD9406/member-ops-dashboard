@@ -47,4 +47,20 @@ public class AppDbContext : DbContext
             .HasIndex(s => s.Username)
             .IsUnique();
     }
+
+    public async Task LogAuditAsync(int memberId, string actor, string action, string? details = null)
+    {
+        var auditLog = new AuditLog
+        {
+            MemberId = memberId,
+            Actor = actor,
+            Action = action,
+            Details = details,
+            Timestamp = DateTime.UtcNow
+        };
+
+        AuditLogs.Add(auditLog);
+        await SaveChangesAsync();
+    }
+
 }
