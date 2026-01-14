@@ -2,10 +2,153 @@
   <mat-card>
     <mat-card-header>
       <mat-card-title>Audit Log</mat-card-title>
+      <mat-card-subtitle
+        >View all member activity and changes</mat-card-subtitle
+      >
     </mat-card-header>
+
     <mat-card-content>
-      <p>Audit log viewer coming soon...</p>
-      <p><em>Note: This page requires Supervisor or Admin role.</em></p>
+      <form [formGroup]="filterForm" class="filter-form">
+        <div class="filter-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="startPicker"
+              [matDatepickerFilter]="startDateFilter"
+              formControlName="startDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="startPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>End Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="endPicker"
+              [matDatepickerFilter]="endDateFilter"
+              formControlName="endDate"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="endPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Action Type</mat-label>
+            <mat-select formControlName="action">
+              <mat-option value="">All Actions</mat-option>
+              @for (action of actionTypes; track action) {
+                <mat-option [value]="action">{{ action }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Actor (Staff Username)</mat-label>
+            <input
+              matInput
+              formControlName="actor"
+              placeholder="Search by staff..."
+            />
+            <mat-icon matSuffix>person</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <div class="filter-actions">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="applyFilters()"
+            [disabled]="loading"
+          >
+            <mat-icon>search</mat-icon>
+            Apply Filters
+          </button>
+          <button mat-button (click)="clearFilters()" [disabled]="loading">
+            <mat-icon>clear</mat-icon>
+            Clear
+          </button>
+        </div>
+      </form>
+
+      @if (loading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+          <p>Loading audit logs...</p>
+        </div>
+      }
+
+      @if (error && !loading) {
+        <div class="error-message">
+          <mat-icon color="warn">error</mat-icon>
+          <p>{{ error }}</p>
+        </div>
+      }
+
+      @if (!loading && !error) {
+        @if (dataSource.length === 0) {
+          <div class="empty-state">
+            <mat-icon>info</mat-icon>
+            <p>No audit logs found matching your filters.</p>
+          </div>
+        } @else {
+          <div class="table-container">
+            <table mat-table [dataSource]="dataSource" class="audit-table">
+              <ng-container matColumnDef="timestamp">
+                <th mat-header-cell *matHeaderCellDef>Date & Time</th>
+                <td mat-cell *matCellDef="let log">
+                  {{ formatDate(log.timestamp) }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actor">
+                <th mat-header-cell *matHeaderCellDef>Staff Member</th>
+                <td mat-cell *matCellDef="let log">
+                  <div class="actor-cell">
+                    <mat-icon>person</mat-icon>
+                    <span>{{ log.actor }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Action</th>
+                <td mat-cell *matCellDef="let log">
+                  <mat-chip class="action-chip">{{ log.action }}</mat-chip>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="member">
+                <th mat-header-cell *matHeaderCellDef>Member</th>
+                <td mat-cell *matCellDef="let log">
+                  {{ getMemberDisplay(log) }}
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="details">
+                <th mat-header-cell *matHeaderCellDef>Details</th>
+                <td mat-cell *matCellDef="let log">
+                  <span class="details-text">{{ log.details || "N/A" }}</span>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table>
+          </div>
+
+          <div class="results-count">
+            Showing {{ dataSource.length }} audit log entries
+          </div>
+        }
+      }
     </mat-card-content>
   </mat-card>
 </div>

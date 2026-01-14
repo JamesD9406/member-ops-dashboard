@@ -1,4 +1,5 @@
 using MemberOpsAPI.Models;
+using MemberOpsAPI.Constants;
 
 namespace MemberOpsAPI.Data;
 
@@ -212,14 +213,14 @@ public static class DbSeeder
         context.ServiceRequests.AddRange(serviceRequests);
         context.SaveChanges();
 
-        // Seed Audit Logs (unchanged)
+        // Seed Audit Logs
         var auditLogs = new List<AuditLog>
         {
             new AuditLog
             {
                 MemberId = members[2].Id,
                 Actor = "supervisor",
-                Action = "Locked Account",
+                Action = AuditActions.AccountLocked,
                 Details = "Account locked due to ID verification requirement",
                 Timestamp = DateTime.UtcNow.AddDays(-5)
             },
@@ -227,7 +228,7 @@ public static class DbSeeder
             {
                 MemberId = members[2].Id,
                 Actor = "supervisor",
-                Action = "Added Flag",
+                Action = AuditActions.FlagCreated,
                 Details = "Flag Type: IDVerification",
                 Timestamp = DateTime.UtcNow.AddDays(-5)
             },
@@ -235,7 +236,7 @@ public static class DbSeeder
             {
                 MemberId = members[1].Id,
                 Actor = "supervisor",
-                Action = "Updated Notes",
+                Action = AuditActions.NotesUpdated,
                 Details = "Added preferred contact method",
                 Timestamp = DateTime.UtcNow.AddDays(-10)
             },
@@ -243,7 +244,7 @@ public static class DbSeeder
             {
                 MemberId = members[6].Id,
                 Actor = "supervisor",
-                Action = "Resolved Flag",
+                Action = AuditActions.FlagResolved,
                 Details = "PaymentIssue flag resolved - payment received",
                 Timestamp = DateTime.UtcNow.AddHours(-2)
             },
@@ -251,7 +252,7 @@ public static class DbSeeder
             {
                 MemberId = members[0].Id,
                 Actor = "staff",
-                Action = "Created Service Request",
+                Action = AuditActions.ServiceRequestCreated,
                 Details = "Type: CardReplacement",
                 Timestamp = DateTime.UtcNow.AddDays(-3)
             }
