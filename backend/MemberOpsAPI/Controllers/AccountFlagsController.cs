@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MemberOpsAPI.Data;
 using MemberOpsAPI.Models;
+using MemberOpsAPI.Constants;
 
 namespace MemberOpsAPI.Controllers;
 
@@ -60,6 +61,14 @@ public class AccountFlagsController : ControllerBase
         _context.AccountFlags.Add(flag);
         await _context.SaveChangesAsync();
 
+        // Log the creation
+        await _context.LogAuditAsync(
+            memberId,
+            username,
+            AuditActions.FlagCreated,
+            $"Flag Type: {request.FlagType} - {request.Description}"
+        );
+
         return CreatedAtAction(nameof(GetMemberFlags), new { memberId }, flag);
     }
 
@@ -91,10 +100,18 @@ public class AccountFlagsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        // Log the resolution
+        await _context.LogAuditAsync(
+            memberId,
+            username,
+            AuditActions.FlagResolved,
+            $"Flag Type: {flag.FlagType}" +
+            (string.IsNullOrWhiteSpace(request.ResolutionNotes) ? "" : $" - Notes: {request.ResolutionNotes}")
+        );
+
         return Ok(flag);
     }
 }
-
 // DTOs for request bodies, small so they can stay here
 public class CreateFlagRequest
 {
