@@ -1,3 +1,6 @@
+import { AccountFlag } from './account-flag.models';
+import { ServiceRequest } from './service-request.models';
+
 export interface Member {
   id: number;
   memberNumber: string;
@@ -8,44 +11,6 @@ export interface Member {
   status: 'Active' | 'Locked' | 'Closed';
   joinDate: string;
   notes?: string;
-  flags?: AccountFlag[]; // Add this
-  serviceRequests?: ServiceRequest[]; // Add this
-}
-
-export interface AccountFlag {
-  id: number;
-  memberId: number;
-  flagType: 'FraudReview' | 'IDVerification' | 'PaymentIssue' | 'GeneralReview';
-  description: string;
-  createdBy: string;
-  createdAt: string;
-  resolvedBy?: string;
-  resolvedAt?: string;
-  resolutionNotes?: string;
-}
-
-export interface ServiceRequest {
-  id: number;
-  memberId: number;
-  requestType:
-    | 'CardReplacement'
-    | 'StatementRequest'
-    | 'AddressChange'
-    | 'Question';
-  description: string;
-  status: 'Open' | 'InProgress' | 'Completed';
-  createdBy: string;
-  createdAt: string;
-  completedBy?: string;
-  completedAt?: string;
-}
-
-export interface AuditLog {
-  id: number;
-  memberId: number;
-  member?: Member;
-  actor: string;
-  action: string;
-  details?: string;
-  timestamp: string;
+  flags?: AccountFlag[];
+  serviceRequests?: ServiceRequest[];
 }

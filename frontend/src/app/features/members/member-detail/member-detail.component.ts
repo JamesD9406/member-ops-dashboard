@@ -20,7 +20,7 @@ import {
   Member,
   AccountFlag,
   ServiceRequest,
-} from '../../../core/models/member.models';
+} from '../../../core/models';
 import { AccountFlagService } from '../../../core/services/account-flag.service';
 import {
   FlagDialogComponent,
@@ -154,14 +154,14 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
 
   getOpenRequests(): ServiceRequest[] {
     return (
-      this.member?.serviceRequests?.filter((r) => r.status !== 'Completed') ||
+      this.member?.serviceRequests?.filter((r) => r.status !== 'Resolved') ||
       []
     );
   }
 
   getCompletedRequests(): ServiceRequest[] {
     return (
-      this.member?.serviceRequests?.filter((r) => r.status === 'Completed') ||
+      this.member?.serviceRequests?.filter((r) => r.status === 'Resolved') ||
       []
     );
   }
