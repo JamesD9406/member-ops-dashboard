@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AccountFlag } from '../models/member.models';
+import { AccountFlag } from '../models'; // Changed from '../models/member.models'
 import { environment } from '../../../environments/environment';
 
 export interface CreateFlagRequest {
-  flagType: 'FraudReview' | 'IDVerification' | 'PaymentIssue' | 'GeneralReview';
+  flagType: AccountFlag['flagType'];
   description: string;
 }
 
