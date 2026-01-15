@@ -1,86 +1,220 @@
-<mat-card class="flags-card">
-  <mat-card-header>
-    <mat-card-title>
-      <mat-icon>flag</mat-icon>
-      Account Flags
-    </mat-card-title>
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="openAddFlagDialog()"
-      class="add-flag-button"
-    >
-      <mat-icon>add</mat-icon>
-      Add Flag
-    </button>
-  </mat-card-header>
+<div class="member-detail-container">
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
 
-  <mat-card-content>
-    @if (getActiveFlags().length > 0) {
-      <h3>Active Flags</h3>
-      <mat-list>
-        @for (flag of getActiveFlags(); track flag.id) {
-          <mat-list-item>
-            <div class="flag-item">
-              <div class="flag-header">
-                <mat-chip [color]="getFlagColor(flag.flagType)" highlighted>
-                  {{ flag.flagType }}
-                </mat-chip>
-                <span class="flag-date">{{
-                  flag.createdAt | date: "short"
-                }}</span>
-              </div>
-              <p class="flag-description">{{ flag.description }}</p>
-              <div class="flag-footer">
-                <span class="flag-creator"
-                  >Created by: {{ flag.createdBy }}</span
-                >
-                @if (canResolveFlags()) {
-                  <button
-                    mat-button
-                    color="primary"
-                    (click)="resolveFlag(flag)"
-                  >
-                    <mat-icon>check_circle</mat-icon>
-                    Resolve
-                  </button>
-                }
-              </div>
-            </div>
-          </mat-list-item>
-          <mat-divider></mat-divider>
-        }
-      </mat-list>
-    } @else {
-      <p class="no-data">No active flags</p>
-    }
+  <div *ngIf="errorMessage" class="error-container">
+    <mat-card>
+      <mat-card-content>
+        <div class="error-message">
+          <mat-icon color="warn">error</mat-icon>
+          <p>{{ errorMessage }}</p>
+        </div>
+        <button mat-raised-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to Members
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
-    @if (getResolvedFlags().length > 0) {
-      <h3 style="margin-top: 24px">Resolved Flags</h3>
-      <mat-list>
-        @for (flag of getResolvedFlags(); track flag.id) {
-          <mat-list-item>
-            <div class="flag-item resolved">
-              <div class="flag-header">
-                <mat-chip>{{ flag.flagType }}</mat-chip>
-                <span class="flag-date">
-                  Resolved: {{ flag.resolvedAt | date: "short" }}
-                </span>
-              </div>
-              <p class="flag-description">{{ flag.description }}</p>
-              @if (flag.resolutionNotes) {
-                <p class="resolution-notes">
-                  <strong>Resolution:</strong> {{ flag.resolutionNotes }}
-                </p>
-              }
-              <span class="flag-creator">
-                Resolved by: {{ flag.resolvedBy }}
-              </span>
+  <div *ngIf="!isLoading && !errorMessage && member">
+    <!-- Header -->
+    <div class="header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ member.firstName }} {{ member.lastName }}</h1>
+      <mat-chip [color]="getStatusColor(member.status)">
+        {{ member.status }}
+      </mat-chip>
+    </div>
+
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>person</mat-icon>
+          Member Information
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Member Number</label>
+            <div class="value">{{ member.memberNumber }}</div>
+          </div>
+          <div class="info-item">
+            <label>Email</label>
+            <div class="value">{{ member.email }}</div>
+          </div>
+          <div class="info-item">
+            <label>Phone</label>
+            <div class="value">{{ member.phone || "Not provided" }}</div>
+          </div>
+          <div class="info-item">
+            <label>Join Date</label>
+            <div class="value">{{ member.joinDate | date: "mediumDate" }}</div>
+          </div>
+          <div class="info-item">
+            <label>Status</label>
+            <div class="value">
+              <mat-chip [color]="getStatusColor(member.status)">
+                {{ member.status }}
+              </mat-chip>
             </div>
-          </mat-list-item>
+          </div>
+        </div>
+
+        <div class="notes-section" *ngIf="member.notes">
           <mat-divider></mat-divider>
+          <label>Notes</label>
+          <p class="notes-text">{{ member.notes }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="flags-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>flag</mat-icon>
+          Account Flags
+        </mat-card-title>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="openAddFlagDialog()"
+          class="add-flag-button"
+        >
+          <mat-icon>add</mat-icon>
+          Add Flag
+        </button>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (getActiveFlags().length > 0) {
+          <h3>Active Flags</h3>
+          <mat-list>
+            @for (flag of getActiveFlags(); track flag.id) {
+              <mat-list-item>
+                <div class="flag-item">
+                  <div class="flag-header">
+                    <mat-chip [color]="getFlagColor(flag.flagType)" highlighted>
+                      {{ flag.flagType }}
+                    </mat-chip>
+                    <span class="flag-date">{{
+                      flag.createdAt | date: "short"
+                    }}</span>
+                  </div>
+                  <p class="flag-description">{{ flag.description }}</p>
+                  <div class="flag-footer">
+                    <span class="flag-creator"
+                      >Created by: {{ flag.createdBy }}</span
+                    >
+                    @if (canResolveFlags()) {
+                      <button
+                        mat-button
+                        color="primary"
+                        (click)="resolveFlag(flag)"
+                      >
+                        <mat-icon>check_circle</mat-icon>
+                        Resolve
+                      </button>
+                    }
+                  </div>
+                </div>
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            }
+          </mat-list>
+        } @else {
+          <p class="no-data">No active flags</p>
         }
-      </mat-list>
-    }
-  </mat-card-content>
-</mat-card>
+
+        @if (getResolvedFlags().length > 0) {
+          <h3 style="margin-top: 24px">Resolved Flags</h3>
+          <mat-list>
+            @for (flag of getResolvedFlags(); track flag.id) {
+              <mat-list-item>
+                <div class="flag-item resolved">
+                  <div class="flag-header">
+                    <mat-chip>{{ flag.flagType }}</mat-chip>
+                    <span class="flag-date">
+                      Resolved: {{ flag.resolvedAt | date: "short" }}
+                    </span>
+                  </div>
+                  <p class="flag-description">{{ flag.description }}</p>
+                  @if (flag.resolutionNotes) {
+                    <p class="resolution-notes">
+                      <strong>Resolution:</strong> {{ flag.resolutionNotes }}
+                    </p>
+                  }
+                  <span class="flag-creator">
+                    Resolved by: {{ flag.resolvedBy }}
+                  </span>
+                </div>
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            }
+          </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="requests-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>assignment</mat-icon>
+          Service Requests
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (getOpenRequests().length > 0) {
+          <h3>Open Requests</h3>
+          <mat-list>
+            @for (request of getOpenRequests(); track request.id) {
+              <mat-list-item>
+                <div class="request-item">
+                  <div class="request-header">
+                    <span class="request-type">{{ request.requestType }}</span>
+                    <mat-chip [color]="getRequestStatusColor(request.status)">
+                      {{ request.status }}
+                    </mat-chip>
+                  </div>
+                  <p class="request-description">{{ request.description }}</p>
+                  <span class="request-date">
+                    Created: {{ request.createdAt | date: "short" }}
+                  </span>
+                </div>
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            }
+          </mat-list>
+        } @else {
+          <p class="no-data">No open service requests</p>
+        }
+
+        @if (getCompletedRequests().length > 0) {
+          <h3 style="margin-top: 24px">Completed Requests</h3>
+          <mat-list>
+            @for (request of getCompletedRequests(); track request.id) {
+              <mat-list-item>
+                <div class="request-item completed">
+                  <div class="request-header">
+                    <span class="request-type">{{ request.requestType }}</span>
+                    <mat-chip>Resolved</mat-chip>
+                  </div>
+                  <p class="request-description">{{ request.description }}</p>
+                  <span class="request-date">
+                    Resolved: {{ request.resolvedAt | date: "short" }}
+                  </span>
+                </div>
+              </mat-list-item>
+              <mat-divider></mat-divider>
+            }
+          </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
