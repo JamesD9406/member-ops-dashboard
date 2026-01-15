@@ -1,0 +1,215 @@
+<div class="service-request-detail-container">
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-container">
+    <mat-card>
+      <mat-card-content>
+        <div class="error-message">
+          <mat-icon color="warn">error</mat-icon>
+          <p>{{ errorMessage }}</p>
+        </div>
+        <button mat-raised-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to List
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage && serviceRequest">
+    <div class="header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Service Request #{{ serviceRequest.id }}</h1>
+      <div class="header-actions">
+        <button mat-icon-button [matMenuTriggerFor]="menu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu="matMenu">
+          <button
+            mat-menu-item
+            (click)="updateStatus('New')"
+            [disabled]="serviceRequest.status === 'New'"
+          >
+            <mat-icon>fiber_new</mat-icon>
+            Mark as New
+          </button>
+          <button
+            mat-menu-item
+            (click)="updateStatus('InProgress')"
+            [disabled]="serviceRequest.status === 'InProgress'"
+          >
+            <mat-icon>pending</mat-icon>
+            Mark as In Progress
+          </button>
+          <button
+            mat-menu-item
+            (click)="updateStatus('Cancelled')"
+            [disabled]="serviceRequest.status === 'Cancelled'"
+          >
+            <mat-icon>cancel</mat-icon>
+            Cancel Request
+          </button>
+        </mat-menu>
+      </div>
+    </div>
+
+    <div class="content">
+      <mat-card class="info-card">
+        <mat-card-header>
+          <mat-card-title>Request Information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Member</label>
+              <div class="value">
+                <a (click)="viewMember()" class="member-link">
+                  {{ getMemberName() }}
+                </a>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label>Request Type</label>
+              <div class="value">{{ serviceRequest.requestType }}</div>
+            </div>
+
+            <div class="info-item">
+              <label>Status</label>
+              <div class="value">
+                <mat-chip [color]="getStatusColor(serviceRequest.status)">
+                  {{ serviceRequest.status }}
+                </mat-chip>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label>Priority</label>
+              <div class="value">
+                <mat-chip [color]="getPriorityColor(serviceRequest.priority)">
+                  {{ serviceRequest.priority }}
+                </mat-chip>
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label>Created By</label>
+              <div class="value">
+                {{ serviceRequest.createdBy?.displayName || "Unknown" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label>Created At</label>
+              <div class="value">
+                {{ serviceRequest.createdAt | date: "medium" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label>Assigned To</label>
+              <div class="value">
+                {{ serviceRequest.assignedTo?.displayName || "Unassigned" }}
+              </div>
+            </div>
+
+            <div class="info-item">
+              <label>Updated At</label>
+              <div class="value">
+                {{ serviceRequest.updatedAt | date: "medium" }}
+              </div>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <div class="description-section">
+            <label>Description</label>
+            <p class="description">{{ serviceRequest.description }}</p>
+          </div>
+
+          <div
+            *ngIf="serviceRequest.status === 'Resolved'"
+            class="resolution-section"
+          >
+            <mat-divider></mat-divider>
+            <h3>Resolution Details</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Resolution Type</label>
+                <div class="value">{{ serviceRequest.resolutionType }}</div>
+              </div>
+
+              <div class="info-item">
+                <label>Resolved By</label>
+                <div class="value">
+                  {{ serviceRequest.resolvedBy?.displayName || "Unknown" }}
+                </div>
+              </div>
+
+              <div class="info-item">
+                <label>Resolved At</label>
+                <div class="value">
+                  {{ serviceRequest.resolvedAt | date: "medium" }}
+                </div>
+              </div>
+            </div>
+
+            <div
+              *ngIf="serviceRequest.resolutionNotes"
+              class="resolution-notes"
+            >
+              <label>Resolution Notes</label>
+              <p>{{ serviceRequest.resolutionNotes }}</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="comments-card">
+        <mat-card-header>
+          <mat-card-title
+            >Comments ({{
+              serviceRequest.comments?.length || 0
+            }})</mat-card-title
+          >
+        </mat-card-header>
+        <mat-card-content>
+          <div
+            *ngIf="
+              !serviceRequest.comments || serviceRequest.comments.length === 0
+            "
+            class="no-comments"
+          >
+            <p>No comments yet</p>
+          </div>
+
+          <mat-list
+            *ngIf="
+              serviceRequest.comments && serviceRequest.comments.length > 0
+            "
+          >
+            <mat-list-item
+              *ngFor="let comment of serviceRequest.comments; let last = last"
+            >
+              <div class="comment">
+                <div class="comment-header">
+                  <strong>{{ comment.staff?.displayName || "Unknown" }}</strong>
+                  <span class="comment-date">{{
+                    comment.createdAt | date: "short"
+                  }}</span>
+                </div>
+                <p class="comment-text">{{ comment.commentText }}</p>
+              </div>
+              <mat-divider *ngIf="!last"></mat-divider>
+            </mat-list-item>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -17,7 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 
 import { AuditLogService } from '../../core/services/audit-log.service';
-import { AuditLog } from '../../core/models/member.models';
+import { AuditLog } from '../../core/models';
 
 @Component({
   selector: 'app-audit-log',
