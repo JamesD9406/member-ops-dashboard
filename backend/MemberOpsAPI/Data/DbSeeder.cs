@@ -1,19 +1,26 @@
 using MemberOpsAPI.Models;
 using MemberOpsAPI.Constants;
+using Microsoft.EntityFrameworkCore;
 
 namespace MemberOpsAPI.Data;
 
 public static class DbSeeder
 {
-    public static void SeedData(AppDbContext context)
+    // Main orchestrator method
+    public static async Task SeedAsync(AppDbContext context)
     {
-        // Check if data already exists
-        if (context.Staff.Any() || context.Members.Any())
-        {
-            return;
-        }
+        await SeedStaffAsync(context);
+        await SeedMembersAsync(context);
+        await SeedAccountFlagsAsync(context);
+        await SeedServiceRequestsAsync(context);
+        await SeedAuditLogsAsync(context);
+    }
 
-        // Seed Staff with BCrypt hashed passwords
+    private static async Task SeedStaffAsync(AppDbContext context)
+    {
+        if (await context.Staff.AnyAsync())
+            return;
+
         var staff = new List<Staff>
         {
             new Staff
@@ -34,17 +41,23 @@ public static class DbSeeder
             },
             new Staff
             {
-                Username = "staff",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Staff123!"),
-                DisplayName = "Sam Staff",
-                Email = "staff@memberops.local",
-                Role = "Staff"
+                Username = "agent",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Agent123!"),
+                DisplayName = "Sam Agent",
+                Email = "agent@memberops.local",
+                Role = "Agent"
             }
         };
-        context.Staff.AddRange(staff);
-        context.SaveChanges();
 
-        // Seed Members (rest of the code remains the same)
+        await context.Staff.AddRangeAsync(staff);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedMembersAsync(AppDbContext context)
+    {
+        if (await context.Members.AnyAsync())
+            return;
+
         var members = new List<Member>
         {
             new Member
@@ -131,10 +144,18 @@ public static class DbSeeder
                 JoinDate = DateTime.UtcNow.AddMonths(-3)
             }
         };
-        context.Members.AddRange(members);
-        context.SaveChanges();
 
-        // Seed Account Flags (unchanged)
+        await context.Members.AddRangeAsync(members);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedAccountFlagsAsync(AppDbContext context)
+    {
+        if (await context.AccountFlags.AnyAsync())
+            return;
+
+        var members = await context.Members.ToListAsync();
+
         var flags = new List<AccountFlag>
         {
             new AccountFlag
@@ -150,7 +171,7 @@ public static class DbSeeder
                 MemberId = members[1].Id,
                 FlagType = "GeneralReview",
                 Description = "Requested credit limit increase review",
-                CreatedBy = "staff",
+                CreatedBy = "agent",
                 CreatedAt = DateTime.UtcNow.AddDays(-2)
             },
             new AccountFlag
@@ -158,62 +179,172 @@ public static class DbSeeder
                 MemberId = members[6].Id,
                 FlagType = "PaymentIssue",
                 Description = "Missed payment - contacted member",
-                CreatedBy = "staff",
+                CreatedBy = "agent",
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
                 ResolvedBy = "supervisor",
                 ResolvedAt = DateTime.UtcNow.AddHours(-2),
                 ResolutionNotes = "Payment received, flag resolved"
             }
         };
-        context.AccountFlags.AddRange(flags);
-        context.SaveChanges();
 
-        // Seed Service Requests (unchanged)
+        await context.AccountFlags.AddRangeAsync(flags);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedServiceRequestsAsync(AppDbContext context)
+    {
+        if (await context.ServiceRequests.AnyAsync())
+            return;
+
+        var members = await context.Members.ToListAsync();
+        var staff = await context.Staff.ToListAsync();
+        var admin = staff.First(s => s.Username == "admin");
+        var supervisor = staff.First(s => s.Username == "supervisor");
+        var agent = staff.First(s => s.Username == "agent");
+
         var serviceRequests = new List<ServiceRequest>
         {
+            // New request - not assigned yet
             new ServiceRequest
             {
                 MemberId = members[0].Id,
-                RequestType = "CardReplacement",
-                Description = "Lost card, needs replacement",
-                Status = "InProgress",
-                CreatedBy = "staff",
-                CreatedAt = DateTime.UtcNow.AddDays(-3)
+                RequestType = "Account Inquiry",
+                Description = "Member is unable to access their account dashboard. Getting error message 'Session Expired'.",
+                Status = ServiceRequestStatus.New,
+                Priority = ServiceRequestPriority.High,
+                CreatedById = agent.Id,
+                CreatedAt = DateTime.UtcNow.AddHours(-2)
             },
-            new ServiceRequest
-            {
-                MemberId = members[3].Id,
-                RequestType = "StatementRequest",
-                Description = "Needs last 6 months statements for tax purposes",
-                Status = "Open",
-                CreatedBy = "staff",
-                CreatedAt = DateTime.UtcNow.AddDays(-1)
-            },
+
+            // In Progress - assigned to agent
             new ServiceRequest
             {
                 MemberId = members[1].Id,
-                RequestType = "AddressChange",
-                Description = "Moving to new address, update records",
-                Status = "Completed",
-                CreatedBy = "staff",
-                CreatedAt = DateTime.UtcNow.AddDays(-7),
-                CompletedBy = "supervisor",
-                CompletedAt = DateTime.UtcNow.AddDays(-6)
+                RequestType = "Technical Support",
+                Description = "Member reports mobile app crashes when trying to upload documents.",
+                Status = ServiceRequestStatus.InProgress,
+                Priority = ServiceRequestPriority.Medium,
+                CreatedById = supervisor.Id,
+                AssignedToId = agent.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                UpdatedAt = DateTime.UtcNow.AddHours(-3)
             },
+
+            // Resolved - completed successfully
+            new ServiceRequest
+            {
+                MemberId = members[2].Id,
+                RequestType = "Billing",
+                Description = "Member requesting refund for duplicate charge on account.",
+                Status = ServiceRequestStatus.Resolved,
+                Priority = ServiceRequestPriority.High,
+                CreatedById = agent.Id,
+                AssignedToId = supervisor.Id,
+                ResolvedById = supervisor.Id,
+                ResolutionType = ResolutionType.Resolved,
+                ResolutionNotes = "Duplicate charge confirmed. Refund processed and will appear in 3-5 business days.",
+                CreatedAt = DateTime.UtcNow.AddDays(-3),
+                UpdatedAt = DateTime.UtcNow.AddDays(-2),
+                ResolvedAt = DateTime.UtcNow.AddDays(-2)
+            },
+
+            // Resolved - more info needed
+            new ServiceRequest
+            {
+                MemberId = members[3].Id,
+                RequestType = "Account Inquiry",
+                Description = "Member claims unauthorized access to account.",
+                Status = ServiceRequestStatus.Resolved,
+                Priority = ServiceRequestPriority.Urgent,
+                CreatedById = supervisor.Id,
+                AssignedToId = agent.Id,
+                ResolvedById = agent.Id,
+                ResolutionType = ResolutionType.MoreInfoNeeded,
+                ResolutionNotes = "Initial investigation shows normal login patterns. Requested member provide specific dates/times of suspected unauthorized access.",
+                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                UpdatedAt = DateTime.UtcNow.AddDays(-4),
+                ResolvedAt = DateTime.UtcNow.AddDays(-4)
+            },
+
+            // In Progress - urgent priority
             new ServiceRequest
             {
                 MemberId = members[4].Id,
-                RequestType = "Question",
-                Description = "Question about overdraft protection options",
-                Status = "Open",
-                CreatedBy = "staff",
-                CreatedAt = DateTime.UtcNow.AddHours(-4)
+                RequestType = "Account Locked",
+                Description = "Member account locked after multiple failed login attempts. Member verified identity via phone.",
+                Status = ServiceRequestStatus.InProgress,
+                Priority = ServiceRequestPriority.Urgent,
+                CreatedById = agent.Id,
+                AssignedToId = supervisor.Id,
+                CreatedAt = DateTime.UtcNow.AddMinutes(-30),
+                UpdatedAt = DateTime.UtcNow.AddMinutes(-25)
+            },
+
+            // Resolved - transferred
+            new ServiceRequest
+            {
+                MemberId = members[5].Id,
+                RequestType = "Technical Support",
+                Description = "Member reporting issues with payment gateway integration on business account.",
+                Status = ServiceRequestStatus.Resolved,
+                Priority = ServiceRequestPriority.Medium,
+                CreatedById = agent.Id,
+                AssignedToId = supervisor.Id,
+                ResolvedById = supervisor.Id,
+                ResolutionType = ResolutionType.Transferred,
+                ResolutionNotes = "Issue requires developer investigation. Transferred to Technical Team via ticket #TK-2847.",
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                UpdatedAt = DateTime.UtcNow.AddDays(-6),
+                ResolvedAt = DateTime.UtcNow.AddDays(-6)
+            },
+
+            // New - low priority
+            new ServiceRequest
+            {
+                MemberId = members[6].Id,
+                RequestType = "General Inquiry",
+                Description = "Member asking about upcoming feature releases and product roadmap.",
+                Status = ServiceRequestStatus.New,
+                Priority = ServiceRequestPriority.Low,
+                CreatedById = agent.Id,
+                CreatedAt = DateTime.UtcNow.AddHours(-5)
             }
         };
-        context.ServiceRequests.AddRange(serviceRequests);
-        context.SaveChanges();
 
-        // Seed Audit Logs
+        await context.ServiceRequests.AddRangeAsync(serviceRequests);
+        await context.SaveChangesAsync();
+
+        // Add some comments to the In Progress request
+        var inProgressRequest = serviceRequests.First(sr => sr.Status == ServiceRequestStatus.InProgress && sr.RequestType == "Technical Support");
+        var comments = new List<ServiceRequestComment>
+        {
+            new ServiceRequestComment
+            {
+                ServiceRequestId = inProgressRequest.Id,
+                StaffId = agent.Id,
+                CommentText = "Starting investigation. Requested member's device information and app version.",
+                CreatedAt = DateTime.UtcNow.AddHours(-2)
+            },
+            new ServiceRequestComment
+            {
+                ServiceRequestId = inProgressRequest.Id,
+                StaffId = agent.Id,
+                CommentText = "Member is using iOS 16.5 with app version 2.3.1. Unable to reproduce issue on test device.",
+                CreatedAt = DateTime.UtcNow.AddMinutes(-45)
+            }
+        };
+
+        await context.ServiceRequestComments.AddRangeAsync(comments);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedAuditLogsAsync(AppDbContext context)
+    {
+        if (await context.AuditLogs.AnyAsync())
+            return;
+
+        var members = await context.Members.ToListAsync();
+
         var auditLogs = new List<AuditLog>
         {
             new AuditLog
@@ -251,13 +382,14 @@ public static class DbSeeder
             new AuditLog
             {
                 MemberId = members[0].Id,
-                Actor = "staff",
-                Action = AuditActions.ServiceRequestCreated,
-                Details = "Type: CardReplacement",
-                Timestamp = DateTime.UtcNow.AddDays(-3)
+                Actor = "agent",
+                Action = ServiceRequestActions.RequestCreated,
+                Details = "Type: Account Inquiry",
+                Timestamp = DateTime.UtcNow.AddHours(-2)
             }
         };
-        context.AuditLogs.AddRange(auditLogs);
-        context.SaveChanges();
+
+        await context.AuditLogs.AddRangeAsync(auditLogs);
+        await context.SaveChangesAsync();
     }
 }

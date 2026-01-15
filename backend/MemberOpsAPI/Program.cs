@@ -12,6 +12,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -77,10 +78,10 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     // Apply migrations (create database if it doesn't exist)
-    context.Database.Migrate();
+    await context.Database.MigrateAsync();
 
     // Seed data
-    DbSeeder.SeedData(context);
+    await DbSeeder.SeedAsync(context);
 }
 
 // Configure the HTTP request pipeline.

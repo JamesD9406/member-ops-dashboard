@@ -108,11 +108,16 @@ namespace MemberOpsAPI.Migrations
                     MemberId = table.Column<int>(type: "integer", nullable: false),
                     RequestType = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Status = table.Column<string>(type: "text", nullable: false),
-                    CreatedBy = table.Column<string>(type: "text", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    Priority = table.Column<int>(type: "integer", nullable: false),
+                    CreatedById = table.Column<int>(type: "integer", nullable: false),
+                    AssignedToId = table.Column<int>(type: "integer", nullable: true),
+                    ResolutionType = table.Column<int>(type: "integer", nullable: true),
+                    ResolutionNotes = table.Column<string>(type: "text", nullable: true),
+                    ResolvedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ResolvedById = table.Column<int>(type: "integer", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CompletedBy = table.Column<string>(type: "text", nullable: true),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -122,7 +127,53 @@ namespace MemberOpsAPI.Migrations
                         column: x => x.MemberId,
                         principalTable: "Members",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequests_Staff_AssignedToId",
+                        column: x => x.AssignedToId,
+                        principalTable: "Staff",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequests_Staff_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Staff",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequests_Staff_ResolvedById",
+                        column: x => x.ResolvedById,
+                        principalTable: "Staff",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ServiceRequestComments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ServiceRequestId = table.Column<int>(type: "integer", nullable: false),
+                    StaffId = table.Column<int>(type: "integer", nullable: false),
+                    CommentText = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ServiceRequestComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequestComments_ServiceRequests_ServiceRequestId",
+                        column: x => x.ServiceRequestId,
+                        principalTable: "ServiceRequests",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequestComments_Staff_StaffId",
+                        column: x => x.StaffId,
+                        principalTable: "Staff",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -142,9 +193,34 @@ namespace MemberOpsAPI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequestComments_ServiceRequestId",
+                table: "ServiceRequestComments",
+                column: "ServiceRequestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequestComments_StaffId",
+                table: "ServiceRequestComments",
+                column: "StaffId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequests_AssignedToId",
+                table: "ServiceRequests",
+                column: "AssignedToId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequests_CreatedById",
+                table: "ServiceRequests",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ServiceRequests_MemberId",
                 table: "ServiceRequests",
                 column: "MemberId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequests_ResolvedById",
+                table: "ServiceRequests",
+                column: "ResolvedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Staff_Username",
@@ -163,13 +239,16 @@ namespace MemberOpsAPI.Migrations
                 name: "AuditLogs");
 
             migrationBuilder.DropTable(
+                name: "ServiceRequestComments");
+
+            migrationBuilder.DropTable(
                 name: "ServiceRequests");
 
             migrationBuilder.DropTable(
-                name: "Staff");
+                name: "Members");
 
             migrationBuilder.DropTable(
-                name: "Members");
+                name: "Staff");
         }
     }
 }

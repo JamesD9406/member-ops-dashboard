@@ -17,6 +17,15 @@
       </a>
       <a
         mat-button
+        routerLink="/service-requests"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <mat-icon>support_agent</mat-icon>
+        Service Requests
+      </a>
+      <a
+        mat-button
         routerLink="/audit-log"
         routerLinkActive="active-link"
         [routerLinkActiveOptions]="{ exact: true }"

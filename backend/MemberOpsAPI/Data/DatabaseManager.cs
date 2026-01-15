@@ -13,7 +13,7 @@ public static class DatabaseManager
         await context.Database.MigrateAsync();
 
         Console.WriteLine("🌱 Seeding data...");
-        DbSeeder.SeedData(context);
+        await DbSeeder.SeedAsync(context);
 
         Console.WriteLine("✅ Database reset complete!");
     }

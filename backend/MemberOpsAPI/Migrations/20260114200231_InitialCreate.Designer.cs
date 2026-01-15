@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MemberOpsAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260109194734_InitialCreate")]
+    [Migration("20260114200231_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -153,18 +153,14 @@ namespace MemberOpsAPI.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CompletedBy")
-                        .HasColumnType("text");
+                    b.Property<int?>("AssignedToId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -173,19 +169,72 @@ namespace MemberOpsAPI.Migrations
                     b.Property<int>("MemberId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
                     b.Property<string>("RequestType")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<string>("ResolutionNotes")
                         .HasColumnType("text");
+
+                    b.Property<int?>("ResolutionType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ResolvedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssignedToId");
+
+                    b.HasIndex("CreatedById");
+
                     b.HasIndex("MemberId");
 
+                    b.HasIndex("ResolvedById");
+
                     b.ToTable("ServiceRequests");
+                });
+
+            modelBuilder.Entity("MemberOpsAPI.Models.ServiceRequestComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CommentText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ServiceRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceRequestId");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("ServiceRequestComments");
                 });
 
             modelBuilder.Entity("MemberOpsAPI.Models.Staff", b =>
@@ -251,13 +300,54 @@ namespace MemberOpsAPI.Migrations
 
             modelBuilder.Entity("MemberOpsAPI.Models.ServiceRequest", b =>
                 {
+                    b.HasOne("MemberOpsAPI.Models.Staff", "AssignedTo")
+                        .WithMany()
+                        .HasForeignKey("AssignedToId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("MemberOpsAPI.Models.Staff", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("MemberOpsAPI.Models.Member", "Member")
                         .WithMany("ServiceRequests")
                         .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MemberOpsAPI.Models.Staff", "ResolvedBy")
+                        .WithMany()
+                        .HasForeignKey("ResolvedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AssignedTo");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Member");
+
+                    b.Navigation("ResolvedBy");
+                });
+
+            modelBuilder.Entity("MemberOpsAPI.Models.ServiceRequestComment", b =>
+                {
+                    b.HasOne("MemberOpsAPI.Models.ServiceRequest", "ServiceRequest")
+                        .WithMany("Comments")
+                        .HasForeignKey("ServiceRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Member");
+                    b.HasOne("MemberOpsAPI.Models.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ServiceRequest");
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("MemberOpsAPI.Models.Member", b =>
@@ -267,6 +357,11 @@ namespace MemberOpsAPI.Migrations
                     b.Navigation("Flags");
 
                     b.Navigation("ServiceRequests");
+                });
+
+            modelBuilder.Entity("MemberOpsAPI.Models.ServiceRequest", b =>
+                {
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }
