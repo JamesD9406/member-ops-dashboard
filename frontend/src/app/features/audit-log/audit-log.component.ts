@@ -15,8 +15,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AuditLogService } from '../../core/services/audit-log.service';
+import { AuthService } from '../../core/services/auth.service';
 import { AuditLog } from '../../core/models';
 
 @Component({
@@ -36,6 +38,7 @@ import { AuditLog } from '../../core/models';
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
+    MatTooltipModule,
   ],
   templateUrl: './audit-log.component.html',
   styleUrls: ['./audit-log.component.scss'],
@@ -61,13 +64,14 @@ export class AuditLogComponent implements OnInit, OnDestroy {
     'Service Request Created',
     'Service Request Completed',
     'Notes Updated',
-    'Status Changed'
+    'Status Changed',
   ];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private auditLogService: AuditLogService,
+    private authService: AuthService,
     private fb: FormBuilder,
   ) {
     this.filterForm = this.fb.group({
@@ -77,24 +81,23 @@ export class AuditLogComponent implements OnInit, OnDestroy {
       actor: [''],
     });
 
-    // Add validation: endDate must be >= startDate
     this.filterForm.get('startDate')?.valueChanges.subscribe(() => {
-      this.filterForm.get('endDate')?.updateValueAndValidity({ emitEvent: false });
+      this.filterForm
+        .get('endDate')
+        ?.updateValueAndValidity({ emitEvent: false });
     });
   }
 
-  // Validation function for end date
   endDateFilter = (date: Date | null): boolean => {
     if (!date) {
       return true;
     }
 
     const today = new Date();
-    today.setHours(23, 59, 59, 999); // End of today
+    today.setHours(23, 59, 59, 999);
 
     const startDate = this.filterForm.get('startDate')?.value;
 
-    // Date must be <= today AND >= startDate (if startDate is selected)
     if (startDate) {
       return date >= startDate && date <= today;
     }
@@ -102,18 +105,16 @@ export class AuditLogComponent implements OnInit, OnDestroy {
     return date <= today;
   };
 
-  // Validation function for start date
   startDateFilter = (date: Date | null): boolean => {
     if (!date) {
       return true;
     }
 
     const today = new Date();
-    today.setHours(23, 59, 59, 999); // End of today
+    today.setHours(23, 59, 59, 999);
 
     const endDate = this.filterForm.get('endDate')?.value;
 
-    // Date must be <= today AND <= endDate (if endDate is selected)
     if (endDate) {
       return date <= endDate && date <= today;
     }
@@ -181,6 +182,17 @@ export class AuditLogComponent implements OnInit, OnDestroy {
     this.loadAuditLogs();
   }
 
+  canExport(): boolean {
+    return this.authService.hasRole(['Supervisor', 'Admin']);
+  }
+
+  exportToCsv(): void {
+    if (this.dataSource.length === 0) {
+      return;
+    }
+    this.auditLogService.exportToCsv(this.dataSource);
+  }
+
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleString();
@@ -191,5 +203,9 @@ export class AuditLogComponent implements OnInit, OnDestroy {
       return `${log.member.firstName} ${log.member.lastName} (${log.member.memberNumber})`;
     }
     return `Member ID: ${log.memberId}`;
+  }
+
+  getActionClass(action: string): string {
+    return 'action-' + action.toLowerCase().replace(/ /g, '-');
   }
 }
