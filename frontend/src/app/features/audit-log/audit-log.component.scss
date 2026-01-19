@@ -133,9 +133,53 @@ mat-card-header {
   }
 }
 
-.action-chip {
+.audit-table mat-chip {
   font-size: 12px;
   min-height: 28px;
+
+  // Flag actions
+  &.action-flag-created {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #ff9800;
+  }
+
+  &.action-flag-resolved {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #4caf50;
+  }
+
+  // Account actions
+  &.action-account-locked {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #f44336;
+  }
+
+  &.action-account-unlocked {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #4caf50;
+  }
+
+  // Service request actions
+  &.action-service-request-created {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #2196f3;
+  }
+
+  &.action-service-request-completed {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #4caf50;
+  }
+
+  // Other actions
+  &.action-notes-updated {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #9c27b0;
+  }
+
+  &.action-status-changed {
+    --mdc-chip-label-text-color: white;
+    --mdc-chip-elevated-container-color: #607d8b;
+  }
 }
 
 .details-text {
