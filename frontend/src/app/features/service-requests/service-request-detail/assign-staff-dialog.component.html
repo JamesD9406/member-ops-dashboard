@@ -1,0 +1,35 @@
+<h2 mat-dialog-title>Assign Staff Member</h2>
+
+<mat-dialog-content>
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading staff list...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Select Staff Member</mat-label>
+      <mat-select [(ngModel)]="selectedStaffId">
+        <mat-option *ngFor="let staff of staffList" [value]="staff.id">
+          {{ staff.displayName }} ({{ staff.role }})
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onAssign()"
+    [disabled]="!selectedStaffId || loading"
+  >
+    Assign
+  </button>
+</mat-dialog-actions>
