@@ -19,7 +19,6 @@
   </div>
 
   <div *ngIf="!isLoading && !errorMessage && member">
-    <!-- Header -->
     <div class="header">
       <button mat-icon-button (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
@@ -28,6 +27,28 @@
       <mat-chip [color]="getStatusColor(member.status)">
         {{ member.status }}
       </mat-chip>
+      <div class="header-actions" *ngIf="canLockUnlock()">
+        <button
+          mat-raised-button
+          color="warn"
+          *ngIf="member.status === 'Active'"
+          (click)="lockAccount()"
+          matTooltip="Lock this member's account"
+        >
+          <mat-icon>lock</mat-icon>
+          Lock Account
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="member.status === 'Locked'"
+          (click)="unlockAccount()"
+          matTooltip="Unlock this member's account"
+        >
+          <mat-icon>lock_open</mat-icon>
+          Unlock Account
+        </button>
+      </div>
     </div>
 
     <mat-card class="info-card">
@@ -65,10 +86,23 @@
           </div>
         </div>
 
-        <div class="notes-section" *ngIf="member.notes">
+        <div class="notes-section">
           <mat-divider></mat-divider>
-          <label>Notes</label>
-          <p class="notes-text">{{ member.notes }}</p>
+          <div class="notes-header">
+            <label>Notes</label>
+            <button
+              mat-icon-button
+              *ngIf="canEditNotes()"
+              (click)="openEditNotesDialog()"
+              matTooltip="Edit notes"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+          </div>
+          <p class="notes-text" *ngIf="member.notes">{{ member.notes }}</p>
+          <p class="notes-text empty" *ngIf="!member.notes">
+            No notes available
+          </p>
         </div>
       </mat-card-content>
     </mat-card>

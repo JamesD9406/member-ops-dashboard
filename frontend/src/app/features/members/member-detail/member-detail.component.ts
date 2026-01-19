@@ -4,7 +4,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-// Material imports
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,19 +13,17 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { MemberService } from '../../../core/services/member.service';
-import {
-  Member,
-  AccountFlag,
-  ServiceRequest,
-} from '../../../core/models';
+import { Member, AccountFlag, ServiceRequest } from '../../../core/models';
 import { AccountFlagService } from '../../../core/services/account-flag.service';
 import {
   FlagDialogComponent,
   FlagDialogResult,
 } from '../../flags/flag-dialog/flag-dialogue.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { EditNotesDialogComponent } from './edit-notes-dialog.component';
 
 @Component({
   selector: 'app-member-detail',
@@ -40,6 +37,7 @@ import { AuthService } from '../../../core/services/auth.service';
     MatProgressSpinnerModule,
     MatDividerModule,
     MatListModule,
+    MatTooltipModule,
   ],
   templateUrl: './member-detail.component.html',
   styleUrls: ['./member-detail.component.scss'],
@@ -154,19 +152,25 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
 
   getOpenRequests(): ServiceRequest[] {
     return (
-      this.member?.serviceRequests?.filter((r) => r.status !== 'Resolved') ||
-      []
+      this.member?.serviceRequests?.filter((r) => r.status !== 'Resolved') || []
     );
   }
 
   getCompletedRequests(): ServiceRequest[] {
     return (
-      this.member?.serviceRequests?.filter((r) => r.status === 'Resolved') ||
-      []
+      this.member?.serviceRequests?.filter((r) => r.status === 'Resolved') || []
     );
   }
 
   canResolveFlags(): boolean {
+    return this.authService.hasRole(['Supervisor', 'Admin']);
+  }
+
+  canLockUnlock(): boolean {
+    return this.authService.hasRole(['Supervisor', 'Admin']);
+  }
+
+  canEditNotes(): boolean {
     return this.authService.hasRole(['Supervisor', 'Admin']);
   }
 
@@ -235,6 +239,102 @@ export class MemberDetailComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error resolving flag:', error);
           this.snackBar.open('Failed to resolve flag', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  lockAccount(): void {
+    if (
+      !this.member ||
+      !confirm('Are you sure you want to lock this account?')
+    ) {
+      return;
+    }
+
+    this.memberService
+      .lockMember(this.member.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Account locked successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadMember(this.member!.id);
+        },
+        error: (error) => {
+          console.error('Error locking account:', error);
+          const message = error.error?.message || 'Failed to lock account';
+          this.snackBar.open(message, 'Close', {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  unlockAccount(): void {
+    if (
+      !this.member ||
+      !confirm('Are you sure you want to unlock this account?')
+    ) {
+      return;
+    }
+
+    this.memberService
+      .unlockMember(this.member.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Account unlocked successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadMember(this.member!.id);
+        },
+        error: (error) => {
+          console.error('Error unlocking account:', error);
+          const message = error.error?.message || 'Failed to unlock account';
+          this.snackBar.open(message, 'Close', {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  openEditNotesDialog(): void {
+    if (!this.member) return;
+
+    const dialogRef = this.dialog.open(EditNotesDialogComponent, {
+      width: '500px',
+      data: {
+        memberName: `${this.member.firstName} ${this.member.lastName}`,
+        notes: this.member.notes || '',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result: string | undefined) => {
+      if (result !== undefined && this.member) {
+        this.updateNotes(result);
+      }
+    });
+  }
+
+  updateNotes(notes: string): void {
+    if (!this.member) return;
+
+    this.memberService
+      .updateNotes(this.member.id, notes || null)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Notes updated successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadMember(this.member!.id);
+        },
+        error: (error) => {
+          console.error('Error updating notes:', error);
+          this.snackBar.open('Failed to update notes', 'Close', {
             duration: 3000,
           });
         },
