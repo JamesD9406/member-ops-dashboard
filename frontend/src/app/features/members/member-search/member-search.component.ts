@@ -105,19 +105,6 @@ export class MemberSearchComponent implements OnInit, OnDestroy {
     this.router.navigate(['/members', member.id]);
   }
 
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'Active':
-        return 'primary';
-      case 'Locked':
-        return 'warn';
-      case 'Closed':
-        return 'accent';
-      default:
-        return '';
-    }
-  }
-
   getActiveFlagCount(member: Member): number {
     return member.flags?.filter((f) => !f.resolvedAt).length || 0;
   }
