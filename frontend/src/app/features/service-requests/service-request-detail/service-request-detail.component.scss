@@ -148,6 +148,21 @@
     }
 
     .comments-card {
+      .add-comment-section {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        margin-bottom: 24px;
+
+        .comment-input {
+          flex: 1;
+        }
+
+        button {
+          margin-top: 8px;
+        }
+      }
+
       .no-comments {
         text-align: center;
         padding: 48px;
