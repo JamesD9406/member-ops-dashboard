@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MemberOpsAPI.Data;
 using MemberOpsAPI.Models;
+using MemberOpsAPI.Constants;
 
 namespace MemberOpsAPI.Controllers;
 
@@ -65,4 +66,100 @@ public class MembersController : ControllerBase
 
         return Ok(member);
     }
+
+    [Authorize(Roles = "Supervisor,Admin")]
+    [HttpPut("{id}/lock")]
+    public async Task<ActionResult<Member>> LockMember(int id)
+    {
+        var member = await _context.Members.FindAsync(id);
+
+        if (member == null)
+        {
+            return NotFound(new { message = "Member not found" });
+        }
+
+        if (member.Status == "Locked")
+        {
+            return BadRequest(new { message = "Member account is already locked" });
+        }
+
+        var username = User.Identity?.Name ?? "Unknown";
+
+        member.Status = "Locked";
+
+        await _context.SaveChangesAsync();
+
+        await _context.LogAuditAsync(
+            id,
+            username,
+            AuditActions.AccountLocked,
+            $"Account locked for {member.FirstName} {member.LastName}"
+        );
+
+        return Ok(member);
+    }
+
+    [Authorize(Roles = "Supervisor,Admin")]
+    [HttpPut("{id}/unlock")]
+    public async Task<ActionResult<Member>> UnlockMember(int id)
+    {
+        var member = await _context.Members.FindAsync(id);
+
+        if (member == null)
+        {
+            return NotFound(new { message = "Member not found" });
+        }
+
+        if (member.Status != "Locked")
+        {
+            return BadRequest(new { message = "Member account is not locked" });
+        }
+
+        var username = User.Identity?.Name ?? "Unknown";
+
+        member.Status = "Active";
+
+        await _context.SaveChangesAsync();
+
+        await _context.LogAuditAsync(
+            id,
+            username,
+            AuditActions.AccountUnlocked,
+            $"Account unlocked for {member.FirstName} {member.LastName}"
+        );
+
+        return Ok(member);
+    }
+
+    [Authorize(Roles = "Supervisor,Admin")]
+    [HttpPut("{id}/notes")]
+    public async Task<ActionResult<Member>> UpdateNotes(int id, [FromBody] UpdateNotesRequest request)
+    {
+        var member = await _context.Members.FindAsync(id);
+
+        if (member == null)
+        {
+            return NotFound(new { message = "Member not found" });
+        }
+
+        var username = User.Identity?.Name ?? "Unknown";
+
+        member.Notes = request.Notes;
+
+        await _context.SaveChangesAsync();
+
+        await _context.LogAuditAsync(
+            id,
+            username,
+            AuditActions.NotesUpdated,
+            $"Notes updated for {member.FirstName} {member.LastName}"
+        );
+
+        return Ok(member);
+    }
+}
+
+public class UpdateNotesRequest
+{
+    public string? Notes { get; set; }
 }
