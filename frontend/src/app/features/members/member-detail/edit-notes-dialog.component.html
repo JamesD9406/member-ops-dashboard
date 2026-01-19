@@ -1,0 +1,17 @@
+<h2 mat-dialog-title>Edit Notes</h2>
+<mat-dialog-content>
+  <p class="member-name">{{ data.memberName }}</p>
+  <mat-form-field appearance="outline" class="notes-field">
+    <mat-label>Notes</mat-label>
+    <textarea
+      matInput
+      [(ngModel)]="notes"
+      rows="6"
+      placeholder="Enter notes about this member..."
+    ></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="onSave()">Save</button>
+</mat-dialog-actions>
