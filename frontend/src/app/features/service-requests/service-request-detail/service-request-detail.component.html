@@ -190,6 +190,29 @@
           >
         </mat-card-header>
         <mat-card-content>
+          <div class="add-comment-section">
+            <mat-form-field appearance="outline" class="comment-input">
+              <mat-label>Add a comment</mat-label>
+              <textarea
+                matInput
+                [(ngModel)]="newComment"
+                placeholder="Type your comment here..."
+                rows="3"
+              ></textarea>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="submitComment()"
+              [disabled]="!newComment.trim() || isSubmittingComment"
+            >
+              <mat-icon>send</mat-icon>
+              {{ isSubmittingComment ? "Submitting..." : "Add Comment" }}
+            </button>
+          </div>
+
+          <mat-divider *ngIf="serviceRequest.comments?.length"></mat-divider>
+
           <div
             *ngIf="
               !serviceRequest.comments || serviceRequest.comments.length === 0
