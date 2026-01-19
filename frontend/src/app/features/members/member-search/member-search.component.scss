@@ -63,6 +63,22 @@ mat-chip-listbox {
     font-size: 12px;
     min-height: 24px;
     padding: 4px 12px;
+
+    // Status colors
+    &.status-active {
+      --mdc-chip-label-text-color: white;
+      --mdc-chip-elevated-container-color: #4caf50;
+    }
+
+    &.status-locked {
+      --mdc-chip-label-text-color: white;
+      --mdc-chip-elevated-container-color: #f44336;
+    }
+
+    &.status-closed {
+      --mdc-chip-label-text-color: white;
+      --mdc-chip-elevated-container-color: #757575;
+    }
   }
 }
 
