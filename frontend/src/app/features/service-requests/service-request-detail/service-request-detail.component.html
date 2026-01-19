@@ -112,8 +112,19 @@
 
             <div class="info-item">
               <label>Assigned To</label>
-              <div class="value">
-                {{ serviceRequest.assignedTo?.displayName || "Unassigned" }}
+              <div class="value assigned-to-value">
+                <span>{{
+                  serviceRequest.assignedTo?.displayName || "Unassigned"
+                }}</span>
+                <button
+                  *ngIf="canAssign()"
+                  mat-icon-button
+                  color="primary"
+                  (click)="openAssignDialog()"
+                  matTooltip="Assign to staff member"
+                >
+                  <mat-icon>person_add</mat-icon>
+                </button>
               </div>
             </div>
 
