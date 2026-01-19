@@ -121,7 +121,9 @@
               <ng-container matColumnDef="action">
                 <th mat-header-cell *matHeaderCellDef>Action</th>
                 <td mat-cell *matCellDef="let log">
-                  <mat-chip class="action-chip">{{ log.action }}</mat-chip>
+                  <mat-chip [class]="'action-' + log.action.toLowerCase().replace(/ /g, '-')">
+                    {{ log.action }}
+                  </mat-chip>
                 </td>
               </ng-container>
 
