@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -15,6 +16,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { ServiceRequestService } from '../../../core/services/service-request.service';
 import { ServiceRequest } from '../../../core/models';
@@ -29,6 +32,7 @@ import {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -37,6 +41,8 @@ import {
     MatDividerModule,
     MatListModule,
     MatMenuModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   templateUrl: './service-request-detail.component.html',
   styleUrls: ['./service-request-detail.component.scss'],
@@ -45,6 +51,8 @@ export class ServiceRequestDetailComponent implements OnInit, OnDestroy {
   serviceRequest: ServiceRequest | null = null;
   isLoading = false;
   errorMessage: string | null = null;
+  newComment = '';
+  isSubmittingComment = false;
 
   private destroy$ = new Subject<void>();
 
@@ -213,6 +221,35 @@ export class ServiceRequestDetailComponent implements OnInit, OnDestroy {
           this.snackBar.open('Failed to assign service request', 'Close', {
             duration: 3000,
           });
+        },
+      });
+  }
+
+  submitComment(): void {
+    if (!this.serviceRequest || !this.newComment.trim()) return;
+
+    this.isSubmittingComment = true;
+
+    this.serviceRequestService
+      .addComment(this.serviceRequest.id, {
+        commentText: this.newComment.trim(),
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Comment added successfully', 'Close', {
+            duration: 3000,
+          });
+          this.newComment = '';
+          this.isSubmittingComment = false;
+          this.loadServiceRequest(this.serviceRequest!.id);
+        },
+        error: (error) => {
+          console.error('Error adding comment:', error);
+          this.snackBar.open('Failed to add comment', 'Close', {
+            duration: 3000,
+          });
+          this.isSubmittingComment = false;
         },
       });
   }
