@@ -14,10 +14,15 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ServiceRequestService } from '../../../core/services/service-request.service';
 import { ServiceRequest } from '../../../core/models';
 import { AuthService } from '../../../core/services/auth.service';
+import {
+  AssignStaffDialogComponent,
+  AssignStaffDialogResult,
+} from './assign-staff-dialog.component';
 
 @Component({
   selector: 'app-service-request-detail',
@@ -49,6 +54,7 @@ export class ServiceRequestDetailComponent implements OnInit, OnDestroy {
     private serviceRequestService: ServiceRequestService,
     private authService: AuthService,
     private snackBar: MatSnackBar,
+    private dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -163,6 +169,48 @@ export class ServiceRequestDetailComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error updating status:', error);
           this.snackBar.open('Failed to update status', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
+  }
+
+  openAssignDialog(): void {
+    if (!this.serviceRequest) return;
+
+    const dialogRef = this.dialog.open(AssignStaffDialogComponent, {
+      width: '400px',
+      data: {
+        serviceRequestId: this.serviceRequest.id,
+        currentAssignedToId: this.serviceRequest.assignedToId,
+      },
+    });
+
+    dialogRef
+      .afterClosed()
+      .subscribe((result: AssignStaffDialogResult | undefined) => {
+        if (result && this.serviceRequest) {
+          this.assignToStaff(result.assignedToId);
+        }
+      });
+  }
+
+  private assignToStaff(assignedToId: number): void {
+    if (!this.serviceRequest) return;
+
+    this.serviceRequestService
+      .assignServiceRequest(this.serviceRequest.id, { assignedToId })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Service request assigned successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadServiceRequest(this.serviceRequest!.id);
+        },
+        error: (error) => {
+          console.error('Error assigning service request:', error);
+          this.snackBar.open('Failed to assign service request', 'Close', {
             duration: 3000,
           });
         },
