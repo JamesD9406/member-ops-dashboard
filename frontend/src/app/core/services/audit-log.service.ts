@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuditLog } from '../models'; // Changed from '../models/member.models'
+import { AuditLog } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -38,5 +38,50 @@ export class AuditLogService {
     }
 
     return this.http.get<AuditLog[]>(this.apiUrl, { params });
+  }
+
+  exportToCsv(logs: AuditLog[]): void {
+    const headers = [
+      'Timestamp',
+      'Actor',
+      'Action',
+      'Member',
+      'Member Number',
+      'Details',
+    ];
+
+    const rows = logs.map((log) => {
+      const memberName = log.member
+        ? `${log.member.firstName} ${log.member.lastName}`
+        : `Member ID: ${log.memberId}`;
+      const memberNumber = log.member?.memberNumber || 'N/A';
+
+      return [
+        new Date(log.timestamp).toLocaleString(),
+        log.actor,
+        log.action,
+        memberName,
+        memberNumber,
+        log.details || '',
+      ]
+        .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+        .join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute(
+      'download',
+      `audit-log-${new Date().toISOString().split('T')[0]}.csv`,
+    );
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 }
