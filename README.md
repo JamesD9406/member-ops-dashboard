@@ -1,5 +1,6 @@
 # Member Operations Dashboard
 
+[![Fly.io Deploy Status](https://img.shields.io/badge/fly.io-deployed-blueviolet?logo=fly.io)](https://memberops-frontend.fly.dev)
 [![Angular](https://img.shields.io/badge/Angular-18-DD0031?logo=angular&logoColor=white)](https://angular.io/)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
@@ -9,6 +10,16 @@
 An Angular + .NET portfolio project demonstrating enterprise staff tool patterns for credit union operations. Features member search, account flags, service request tracking, and audit logging with role-based access control.
 
 This project showcases Angular expertise with standalone components, RxJS reactive patterns, Angular Material, and integration with a .NET 8 Web API backend using JWT authentication.
+
+**Live Demo:** [https://memberops-frontend.fly.dev](https://memberops-frontend.fly.dev)
+
+**Demo Credentials:**
+
+| Username   | Password  | Role       |
+| ---------- | --------- | ---------- |
+| admin      | Admin123! | Admin      |
+| supervisor | Super123! | Supervisor |
+| agent      | Agent123! | Agent      |
 
 ---
 
