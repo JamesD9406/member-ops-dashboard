@@ -69,9 +69,43 @@ This project showcases Angular expertise with standalone components, RxJS reacti
 
 ---
 
-## Screenshots
+## 📸 Screenshots
 
-_Coming soon_
+### 🟦 Login Overview
+<p>Shows the ability to login in as different users with different roles.</p>
+<div style="display: flex; gap: 12px; margin-bottom: 20px;">
+ <img src="screenshots/login.png" width="100%" alt="The starting login screen."/>
+</div>
+
+### 🟧 Member List
+<p>Shows the current list of members along with their account status and a live count of flags. Debounced search allows searching by simply typing into the search box.</p>
+<div style="display: flex; gap: 12px; margin-bottom: 20px;">
+   <img src="screenshots/member_list.png" width="100%" alt="The main view to see all memembers and their info."/>
+</div>
+
+### 🟨 Member Detail
+<p>Detailed member view showing flags and account status. The ability to resolve flags or unlock account is ppresent depending on user role.</p>
+<div style="display: flex; gap: 12px; margin-bottom: 20px;">
+   <img src="screenshots/member_detail.png" width="100%" alt="The detailed member view including ability to resolve flags and lock/unlock accounts based on user role."/>
+</div>
+
+### 🟨 Audit Log
+<p>Available to admin and supervisor user, and shows the most recent actions taken in the application.</p>
+<div style="display: flex; gap: 12px; margin-bottom: 20px;">
+   <img src="screenshots/audit_log.png" width="100%" alt="A view displaying an audit of transactions created in the application."/>
+</div>
+
+### 🟩 Service Request
+<p>Displays a listing of customer service requests, along with status and priority.</p>
+<div style="display: flex; gap: 12px; margin-bottom: 20px;">
+    <img src="screenshots/service-request.png" width="100%" alt="Displays a listing of customer service requests, along with status and priority."/>
+</div>
+
+### 🟦 Role Based Actions
+<p>Available actions are defined by user role. For example, Supervisor has the ability to assing service requests to other staff memember, agent does not.</p>
+<div style="display: flex; gap: 12px; margin-bottom: 20px;">
+ <img src="screenshots/role_based.png" width="100%" alt="Available actions are defined by user role. For example, Supervisor has the ability to assing service requests to other staff memember, agent does not."/>
+</div>
 
 ---
 
