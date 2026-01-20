@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoginRequest, LoginResponse, User } from '../models/auth.models';
+import { environment } from '../../../environments/environment';
 
 
 // Make this a singleton app wide:
@@ -10,7 +11,7 @@ import { LoginRequest, LoginResponse, User } from '../models/auth.models';
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_URL = 'http://localhost:5293/api';
+  private readonly API_URL = environment.apiUrl;
   private readonly TOKEN_KEY = 'auth_token';
   private readonly USER_KEY = 'current_user';
 

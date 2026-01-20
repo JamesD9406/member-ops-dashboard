@@ -1,0 +1,32 @@
+# fly.toml app configuration file generated for memberops-frontend on 2026-01-20T15:34:19-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'memberops-frontend'
+primary_region = 'ord'
+
+[build]
+  dockerfile = 'Dockerfile.prod'
+
+[env]
+  NODE_ENV = 'production'
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/'
+
+[[vm]]
+  memory = '256mb'
+  cpus = 1
+  memory_mb = 256
